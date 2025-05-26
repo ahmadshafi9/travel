@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Route Optimizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid #e9ecef;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        .result-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .result-card h3::before {
+            content: "✈️";
+            margin-right: 10px;
+        }
+
+        .direct-route {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .stopover-route {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .route-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .path-display {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .city-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 12px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #d84315;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .comparison {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✈️ Flight Route Optimizer</h1>
+            <p>Find the optimal flight paths with intelligent stopover analysis</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 style="margin-bottom: 20px; color: #333;">Route Planning</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startCity">Starting City</label>
+                        <select id="startCity">
+                            <option value="">Select starting city...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endCity">Destination City</label>
+                        <select id="endCity">
+                            <option value="">Select destination city...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="excludedCities">Excluded Stopovers (Optional)</label>
+                    <input type="text" id="excludedCities" placeholder="e.g., paris, london, tokyo (comma-separated)">
+                </div>
+
+                <button onclick="findOptimalRoute()">Find Optimal Route</button>
+            </div>
+
+            <div id="results"></div>
+
+            <div style="margin-top: 30px;">
+                <h3 style="color: #333; margin-bottom: 15px;">Available Cities</h3>
+                <div id="citiesGrid" class="cities-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Flight data (converted from Python)
+        const edges = [
+            ['dubai', 'vancouver', 11724],
+            ['dubai', 'tokyo', 12090],
+            ['vancouver', 'tokyo', 7597],
+            ['dubai', 'london', 5470.25],
+            ['london', 'tokyo', 9559.36],
+            ['dubai', 'new york', 11040],
+            ['london', 'new york', 5570],
+            ['tokyo', 'new york', 10840],
+            ['vancouver', 'new york', 3900],
+            ['paris', 'new york', 5830],
+            ['sydney', 'new york', 16000],
+            ['dubai', 'paris', 5250],
+            ['london', 'paris', 345],
+            ['tokyo', 'paris', 9715],
+            ['singapore', 'paris', 10300],
+            ['dubai', 'sydney', 12050],
+            ['london', 'sydney', 17015],
+            ['tokyo', 'sydney', 7820],
+            ['vancouver', 'sydney', 12510],
+            ['singapore', 'sydney', 6300],
+            ['dubai', 'singapore', 5830],
+            ['london', 'singapore', 10850],
+            ['tokyo', 'singapore', 5320],
+            ['dubai', 'kozhikode', 2695],
+            ['kozhikode', 'london', 7670],
+            ['kozhikode', 'singapore', 3450],
+            ['kozhikode', 'tokyo', 7500],
+            ['kozhikode', 'paris', 7480],
+            ['dubai', 'muscat', 350],
+            ['dubai', 'manama', 485],
+            ['dubai', 'kuwait city', 855],
+            ['dubai', 'doha', 380],
+            ['dubai', 'riyadh', 875],
+            ['dubai', 'jeddah', 1700],
+            ['doha', 'riyadh', 490],
+            ['kuwait city', 'riyadh', 785],
+            ['manama', 'riyadh', 420],
+            ['manama', 'kuwait city', 350],
+            ['jeddah', 'riyadh', 850],
+            ['kozhikode', 'muscat', 1500],
+            ['kozhikode', 'doha', 2800],
+            ['dubai', 'baku', 1760],
+            ['dubai', 'tbilisi', 2060],
+            ['dubai', 'istanbul', 2970],
+            ['london', 'istanbul', 2495],
+            ['paris', 'istanbul', 2250],
+            ['frankfurt', 'istanbul', 1900],
+            ['rome', 'istanbul', 1370],
+            ['madrid', 'istanbul', 2740],
+            ['baku', 'tbilisi', 450],
+            ['baku', 'istanbul', 1745],
+            ['tbilisi', 'istanbul', 1300],
+            ['kozhikode', 'istanbul', 4900],
+            ['london', 'frankfurt', 635],
+            ['london', 'rome', 1435],
+            ['london', 'madrid', 1260],
+            ['paris', 'frankfurt', 475],
+            ['paris', 'rome', 1105],
+            ['paris', 'madrid', 1050],
+            ['frankfurt', 'rome', 965],
+            ['frankfurt', 'madrid', 1445],
+            ['rome', 'madrid', 1360],
+            ['new york', 'frankfurt', 6200],
+            ['new york', 'rome', 6900],
+            ['new york', 'madrid', 5760],
+            ['dubai', 'johannesburg', 7100],
+            ['london', 'johannesburg', 9000],
+            ['cairo', 'johannesburg', 6200],
+            ['singapore', 'johannesburg', 8700],
+            ['dubai', 'cairo', 2420],
+            ['london', 'cairo', 3500],
+            ['paris', 'cairo', 3200],
+            ['istanbul', 'cairo', 1200],
+            ['rome', 'cairo', 2150],
+            ['kozhikode', 'cairo', 4100],
+            ['riyadh', 'cairo', 1600],
+            ['dubai', 'beijing', 5800],
+            ['tokyo', 'beijing', 2100],
+            ['singapore', 'beijing', 4400],
+            ['london', 'beijing', 8150],
+            ['new york', 'beijing', 11000],
+            ['dubai', 'mumbai', 1930],
+            ['kozhikode', 'mumbai', 950],
+            ['singapore', 'mumbai', 3900],
+            ['london', 'mumbai', 7200],
+            ['frankfurt', 'mumbai', 6300],
+            ['riyadh', 'mumbai', 2800],
+            ['dubai', 'bangkok', 4890],
+            ['singapore', 'bangkok', 1430],
+            ['tokyo', 'bangkok', 4600],
+            ['sydney', 'bangkok', 7500],
+            ['london', 'bangkok', 9500],
+            ['mumbai', 'bangkok', 3000],
+            ['new york', 'rio de janeiro', 7900],
+            ['london', 'rio de janeiro', 9280],
+            ['madrid', 'rio de janeiro', 8100],
+            ['dubai', 'rio de janeiro', 12000],
+            ['london', 'toronto', 5700],
+            ['new york', 'toronto', 550],
+            ['vancouver', 'toronto', 3350],
+            ['paris', 'toronto', 6000],
+            ['tokyo', 'los angeles', 8800],
+            ['sydney', 'los angeles', 12000],
+            ['london', 'los angeles', 8700],
+            ['new york', 'los angeles', 3950],
+            ['vancouver', 'los angeles', 1700],
+            ['dubai', 'los angeles', 13390],
+            ['vancouver', 'calgary', 685],
+            ['toronto', 'calgary', 2700],
+            ['new york', 'calgary', 3200],
+            ['london', 'calgary', 7000],
+            ['dubai', 'calgary', 10300],
+            ['tokyo', 'calgary', 7500],
+            ['los angeles', 'calgary', 1200]
+        ];
+
+        // Create weighted graph
+        function createWeightedGraph(edges) {
+            const graph = {};
+            
+            for (const [node1, node2, weight] of edges) {
+                if (!graph[node1]) graph[node1] = {};
+                if (!graph[node2]) graph[node2] = {};
+                
+                graph[node1][node2] = weight;
+                graph[node2][node1] = weight;
+            }
+            
+            return graph;
+        }
+
+        // Dijkstra's algorithm implementation
+        function dijkstra(graph, startNode) {
+            const distances = {};
+            const paths = {};
+            const visited = new Set();
+            const priorityQueue = [];
+
+            // Initialize distances
+            for (const node in graph) {
+                distances[node] = node === startNode ? 0 : Infinity;
+                paths[node] = node === startNode ? [startNode] : [];
+            }
+
+            priorityQueue.push({ distance: 0, node: startNode, path: [startNode] });
+
+            while (priorityQueue.length > 0) {
+                // Sort by distance (simple priority queue)
+                priorityQueue.sort((a, b) => a.distance - b.distance);
+                const { distance: currentDistance, node: currentNode, path: currentPath } = priorityQueue.shift();
+
+                if (visited.has(currentNode)) continue;
+                visited.add(currentNode);
+
+                if (currentDistance < distances[currentNode]) {
+                    distances[currentNode] = currentDistance;
+                    paths[currentNode] = currentPath;
+                }
+
+                // Explore neighbors
+                for (const neighbor in graph[currentNode]) {
+                    if (!visited.has(neighbor)) {
+                        const newDistance = currentDistance + graph[currentNode][neighbor];
+                        if (newDistance < distances[neighbor]) {
+                            distances[neighbor] = newDistance;
+                            const newPath = [...currentPath, neighbor];
+                            paths[neighbor] = newPath;
+                            priorityQueue.push({ distance: newDistance, node: neighbor, path: newPath });
+                        }
+                    }
+                }
+            }
+
+            return { distances, paths };
+        }
+
+        // Find best stopover
+        function findBestStopover(graph, startCity, endCity, excludedStopovers = []) {
+            if (!graph[startCity] || !graph[endCity]) {
+                return { bestStopover: null, minTotalDistance: Infinity, fullPath: null, error: `Start city '${startCity}' or end city '${endCity}' not found in graph.` };
+            }
+
+            const { distances: distancesFromStart, paths: pathsFromStart } = dijkstra(graph, startCity);
+
+            let bestStopover = null;
+            let minTotalDistance = Infinity;
+            let fullPath = null;
+
+            for (const stopoverCity in graph) {
+                if (stopoverCity === startCity || stopoverCity === endCity) continue;
+                if (excludedStopovers.includes(stopoverCity)) continue;
+                if (distancesFromStart[stopoverCity] === Infinity) continue;
+
+                const { distances: distancesFromStopover } = dijkstra(graph, stopoverCity);
+                if (distancesFromStopover[endCity] === Infinity) continue;
+
+                const totalDistance = distancesFromStart[stopoverCity] + distancesFromStopover[endCity];
+
+                if (totalDistance < minTotalDistance) {
+                    minTotalDistance = totalDistance;
+                    bestStopover = stopoverCity;
+                    
+                    const pathToStopover = pathsFromStart[stopoverCity];
+                    const { paths: pathsFromStopover } = dijkstra(graph, stopoverCity);
+                    const pathFromStopoverToEnd = pathsFromStopover[endCity].slice(1);
+                    fullPath = [...pathToStopover, ...pathFromStopoverToEnd];
+                }
+            }
+
+            return { bestStopover, minTotalDistance, fullPath };
+        }
+
+        // Initialize the application
+        let weightedGraph;
+
+        function initApp() {
+            weightedGraph = createWeightedGraph(edges);
+            populateCityDropdowns();
+            displayAvailableCities();
+        }
+
+        function populateCityDropdowns() {
+            const cities = Object.keys(weightedGraph).sort();
+            const startSelect = document.getElementById('startCity');
+            const endSelect = document.getElementById('endCity');
+
+            cities.forEach(city => {
+                const option1 = new Option(city.charAt(0).toUpperCase() + city.slice(1), city);
+                const option2 = new Option(city.charAt(0).toUpperCase() + city.slice(1), city);
+                startSelect.appendChild(option1);
+                endSelect.appendChild(option2);
+            });
+        }
+
+        function displayAvailableCities() {
+            const cities = Object.keys(weightedGraph).sort();
+            const citiesGrid = document.getElementById('citiesGrid');
+            
+            citiesGrid.innerHTML = cities.map(city => 
+                `<div class="city-tag">${city.charAt(0).toUpperCase() + city.slice(1)}</div>`
+            ).join('');
+        }
+
+        function findOptimalRoute() {
+            const startCity = document.getElementById('startCity').value;
+            const endCity = document.getElementById('endCity').value;
+            const excludedInput = document.getElementById('excludedCities').value;
+            const excludedCities = excludedInput ? excludedInput.split(',').map(city => city.trim().toLowerCase()) : [];
+
+            if (!startCity || !endCity) {
+                showError('Please select both starting and destination cities.');
+                return;
+            }
+
+            if (startCity === endCity) {
+                showError('Starting and destination cities cannot be the same.');
+                return;
+            }
+
+            showLoading();
+
+            // Small delay to show loading animation
+            setTimeout(() => {
+                const directDistance = weightedGraph[startCity]?.[endCity];
+                const stopoverResult = findBestStopover(weightedGraph, startCity, endCity, excludedCities);
+
+                displayResults(startCity, endCity, directDistance, stopoverResult, excludedCities);
+            }, 500);
+        }
+
+        function showLoading() {
+            document.getElementById('results').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Calculating optimal routes...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('results').innerHTML = `
+                <div class="error-message">
+                    <h3>⚠️ Error</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function displayResults(startCity, endCity, directDistance, stopoverResult, excludedCities) {
+            const resultsDiv = document.getElementById('results');
+            let html = '<div class="results-section">';
+
+            // Direct route
+            if (directDistance !== undefined) {
+                html += `
+                    <div class="result-card direct-route">
+                        <h3>Direct Flight</h3>
+                        <div class="route-info">
+                            <div class="info-item">
+                                <div class="info-label">Distance</div>
+                                <div class="info-value">${directDistance.toFixed(2)} km</div>
+                            </div>
+                        </div>
+                        <div class="path-display">
+                            ${capitalizeCity(startCity)} → ${capitalizeCity(endCity)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="result-card error-message">
+                        <h3>❌ No Direct Flight</h3>
+                        <p>No direct flight available between ${capitalizeCity(startCity)} and ${capitalizeCity(endCity)}</p>
+                    </div>
+                `;
+            }
+
+            // Stopover route
+            if (stopoverResult.error) {
+                html += `
+                    <div class="error-message">
+                        <h3>Error</h3>
+                        <p>${stopoverResult.error}</p>
+                    </div>
+                `;
+            } else if (stopoverResult.bestStopover) {
+                html += `
+                    <div class="result-card stopover-route">
+                        <h3>Best Stopover Route</h3>
+                        <div class="route-info">
+                            <div class="info-item">
+                                <div class="info-label">Stopover City</div>
+                                <div class="info-value">${capitalizeCity(stopoverResult.bestStopover)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Total Distance</div>
+                                <div class="info-value">${stopoverResult.minTotalDistance.toFixed(2)} km</div>
+                            </div>
+                        </div>
+                        <div class="path-display">
+                            ${stopoverResult.fullPath.map(city => capitalizeCity(city)).join(' → ')}
+                        </div>
+                    </div>
+                `;
+
+                // Comparison
+                if (directDistance !== undefined) {
+                    const savings = directDistance - stopoverResult.minTotalDistance;
+                    const savingsPercent = ((savings / directDistance) * 100).toFixed(1);
+                    
+                    html += `
+                        <div class="comparison">
+                            <h3>📊 Route Comparison</h3>
+                            <p>
+                                ${savings > 0 
+                                    ? `✅ Stopover route saves <strong>${savings.toFixed(2)} km</strong> (${savingsPercent}% shorter)`
+                                    : `❌ Direct route is <strong>${Math.abs(savings).toFixed(2)} km</strong> shorter (${Math.abs(savingsPercent)}% savings)`
+                                }
+                            </p>
+                        </div>
+                    `;
+                }
+            } else {
+                html += `
+                    <div class="error-message">
+                        <h3>❌ No Stopover Route Found</h3>
+                        <p>No valid single-stopover path found from ${capitalizeCity(startCity)} to ${capitalizeCity(endCity)}</p>
+                    </div>
+                `;
+            }
+
+            if (excludedCities.length > 0) {
+                html += `
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #666; margin-bottom: 10px;">Excluded Stopovers</h4>
+                        <p style="color: #666;">${excludedCities.map(capitalizeCity).join(', ')}</p>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        function capitalizeCity(city) {
+            return city.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
