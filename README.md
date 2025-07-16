@@ -1,3 +1,6 @@
+hosted on [trvl-buddy.](https://trvl-buddy.onrender.com/)
+
+
 Want a Mini-Vacay on a budget?
 
 As an international student making those long flights between Dubai and Vancouver for vacations, I kept thinking: "There has to be a way to sneak in a cool, affordable stopover without totally blowing my budget or adding a ton of extra travel time."
@@ -20,4 +23,4 @@ TripAdvisor Content API: Once potential stopover cities are identified, the appl
     Basic Location Details: Name, address, and overall ratings for hotels, attractions, and restaurants.
     Curated Content: Access to a limited number of recent reviews and photos to give you a quick glimpse into what the stopover city offers.         This helps you quickly assess if a stopover aligns with your mini-vacay interests.
 
-feel free to plan your next mini-vacay at ahmadshafi9.github.io/index.html
+making it better everyday...
