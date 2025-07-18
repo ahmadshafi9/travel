@@ -1,4 +1,4 @@
-hosted on [trvl-buddy.](https://trvl-buddy.onrender.com/)
+hosted on [trvl-buddy.](https://trvl-buddy.onrender.com/) - constantly updating
 
 
 Want a Mini-Vacay on a budget?
